@@ -1,0 +1,77 @@
+<style>
+  .button {
+    background-color: #2AD181;
+    border: none;
+    color: white;
+    padding: 4px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+  }
+</style>
+<button id="renameFrame" class="button">规则化画板</button>
+<button id="renameEverything" class="button">重命名所选</button>
+<!-- <button id="exportPDF" class="button">导出画板为PDF</button> -->
+<!-- <button id="translate" class="button">翻译</button> -->
+<button id="sortInstance" class="button">画板整理</button>
+<button id="addTitleToInstance" class="button">实例标名</button>
+<button id="exchangePosition" class="button">交换位置</button>
+<button id="printObject" class="button">打印对象</button>
+<button id="cloneAndReplace" class="button">影分身</button>
+<button id="framesToComponents" class="button">画板转组件</button>
+<button id="stoneFree" class="button">石之自由</button>
+<button id="exportSelectedFramesToPDF" class="button">导出PDF</button>
+<button id="loveTrain" class="button">爱之列车</button>
+<button id="moveDown" class="button">向下移动一个画板</button>
+<button id="frameNamer" class="button">文档命名</button>
+<button id="crazyDiamond" class="button">疯狂钻石</button>
+
+<script>
+  document.getElementById('crazyDiamond').onclick = () => {
+    parent.postMessage({ pluginMessage: 'crazyDiamond' }, '*')
+  }
+  document.getElementById('frameNamer').onclick = () => {
+    parent.postMessage({ pluginMessage: 'frameNamer' }, '*')
+  }
+  document.getElementById('moveDown').onclick = () => {
+    parent.postMessage({ pluginMessage: 'moveDown' }, '*')
+  }
+  document.getElementById('loveTrain').onclick = () => {
+    parent.postMessage({ pluginMessage: 'loveTrain' }, '*')
+  }
+  document.getElementById('exportSelectedFramesToPDF').onclick = () => {
+    parent.postMessage({ pluginMessage: 'exportSelectedFramesToPDF' }, '*')
+  }
+  document.getElementById('addTitleToInstance').onclick = () => {
+    parent.postMessage({ pluginMessage: 'addTitleToInstance' }, '*')
+  }
+  document.getElementById('stoneFree').onclick = () => {
+    parent.postMessage({ pluginMessage: 'stoneFree' }, '*')
+  }
+  document.getElementById('framesToComponents').onclick = () => {
+    parent.postMessage({ pluginMessage: 'framesToComponents' }, '*')
+  }
+  document.getElementById('cloneAndReplace').onclick = () => {
+    parent.postMessage({ pluginMessage: 'cloneAndReplace' }, '*')
+  }
+  document.getElementById('printObject').onclick = () => {
+    parent.postMessage({ pluginMessage: 'printObject' }, '*')
+  }
+  document.getElementById('exchangePosition').onclick = () => {
+    parent.postMessage({ pluginMessage: 'exchangePosition' }, '*')
+  }
+  document.getElementById('renameFrame').onclick = () => {
+    parent.postMessage({ pluginMessage: 'renameFrame' }, '*')
+  }
+
+  document.getElementById('renameEverything').onclick = () => {
+    parent.postMessage({ pluginMessage: 'renameEverything' }, '*')
+  }
+
+  document.getElementById('sortInstance').onclick = () => {
+    parent.postMessage({ pluginMessage: 'sortInstance' }, '*')
+  }
+</script>

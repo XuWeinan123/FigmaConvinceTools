@@ -1,0 +1,19 @@
+{
+  "name": "便捷工具",
+  "id": "871655722688658012",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "menu":[
+    {"name":"Adjust Frame&Rect Size",
+      "menu":[
+        {"name": "Adjust2Portrait", "command": "phonePortrait"},
+        {"name": "Adjust2Horizontal", "command": "phoneHorizontal"},
+        {"name": "Adjust2DocumentSize", "command": "documentSize"},
+        {"name": "Adjust2Auto", "command": "phoneAuto"}
+      ]
+    },
+    {"name": "Rename Frame Name", "command": "perArtboardRename"},
+    {"name": "Show Panel", "command": "showPanel"}
+  ]
+}
