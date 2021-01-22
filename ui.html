@@ -13,7 +13,7 @@
   }
 </style>
 <button id="renameFrame" class="button">规则化画板</button>
-<button id="renameEverything" class="button">重命名所选</button>
+<button id="renameEverything" class="button">自动命名</button>
 <!-- <button id="exportPDF" class="button">导出画板为PDF</button> -->
 <!-- <button id="translate" class="button">翻译</button> -->
 <button id="sortInstance" class="button">画板整理</button>
@@ -26,15 +26,15 @@
 <button id="exportSelectedFramesToPDF" class="button">导出PDF</button>
 <button id="loveTrain" class="button">爱之列车</button>
 <button id="moveDown" class="button">向下移动一个画板</button>
-<button id="frameNamer" class="button">文档命名</button>
 <button id="crazyDiamond" class="button">疯狂钻石</button>
+<button id="tracingSource" class="button">追根溯源</button>
 
 <script>
+  document.getElementById('tracingSource').onclick = () => {
+    parent.postMessage({ pluginMessage: 'tracingSource' }, '*')
+  }
   document.getElementById('crazyDiamond').onclick = () => {
     parent.postMessage({ pluginMessage: 'crazyDiamond' }, '*')
-  }
-  document.getElementById('frameNamer').onclick = () => {
-    parent.postMessage({ pluginMessage: 'frameNamer' }, '*')
   }
   document.getElementById('moveDown').onclick = () => {
     parent.postMessage({ pluginMessage: 'moveDown' }, '*')

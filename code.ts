@@ -10,9 +10,9 @@ switch (figma.command) {
   case "documentSize":
     documentSize()
     break;
-    case "phoneAuto":
-        phoneAuto();
-        break;
+  case "phoneAuto":
+    phoneAuto();
+    break;
   case "perArtboardRename":
     perArtboardRename()
     break;
@@ -33,7 +33,7 @@ function sortInstance() {
   // 5-1
   // 6-0.833333
   // 7-0.666666
-  var scaleFactors = [1, 1, 1, 1, 1, 5 / 6, 2 / 3]
+  var scaleFactors = [1, 1, 1, 1, 1, 4 / 5, 7 / 10]
   var selections = figma.currentPage.selection;
   var instanceSelections = []
   if (selections.length > 0 && selections.length < 8) {
@@ -57,7 +57,7 @@ function sortInstance() {
       var parentHeight = instanceSelections[0].parent.height
       var childWidth = instanceSelections[0].width
       var childHeight = instanceSelections[0].height
-      var spacing = 50
+      var spacing = 100 * scaleFactors[number - 1]
       for (var i = 0; i < instanceSelections.length; i++) {
         instanceSelections[i].x = parentWidth / 2 - childWidth / 2 * number - spacing / 2 * (number - 1) + ((childWidth + spacing) * i)
         instanceSelections[i].y = (parentHeight - childHeight) / 2
@@ -131,7 +131,7 @@ async function addTitleToInstance() {
           instanceSelections[0].parent.appendChild(tempInstance)
           tempInstance.x = instanceSelections[0].x
           tempInstance.y = instanceSelections[0].y + instanceSelections[0].height + 50
-          tempInstance.resize(instanceSelections[0].width * 2 + 50, tempInstance.height)
+          tempInstance.resize(instanceSelections[0].width * 2 + 100, tempInstance.height)
           var declareChild = tempInstance.findOne(node => node.name === "说明文案")
 
           await loadNodeFonts([declareChild])
@@ -167,17 +167,17 @@ async function loadNodeFonts(textNodes) {
   }
   for (const fontName of fontNames) {
     console.log("尝试加载0")
-      //判断是否字体已加载
-      var isLoaded = false;
-      for(const loadedFont of loadedFonts){
-        if((fontName.family == loadedFont.family) && (fontName.style == loadedFont.style)){
-          isLoaded = true
-        }
+    //判断是否字体已加载
+    var isLoaded = false;
+    for (const loadedFont of loadedFonts) {
+      if ((fontName.family == loadedFont.family) && (fontName.style == loadedFont.style)) {
+        isLoaded = true
       }
-      if(isLoaded == false){
-        loadedFonts.push(fontName);
-        await figma.loadFontAsync(fontName)
-      }
+    }
+    if (isLoaded == false) {
+      loadedFonts.push(fontName);
+      await figma.loadFontAsync(fontName)
+    }
   }
 }
 
@@ -212,26 +212,30 @@ function documentSize() {
 function phoneAuto() {
   var selections = figma.currentPage.selection;
   for (const selection of selections) {
-      if (selection.parent != figma.currentPage) {
-          var parentWidth = selection.parent.width
-          var parentHeight = selection.parent.height
-          var widthScale = selection.width/parentWidth
-          var heighScale = selection.height/parentHeight
-          var scaleFactorss = (widthScale > heighScale ? widthScale:heighScale)
-          console.log(scaleFactorss)
-          if(selection.type == "INSTANCE"){
-            selection.scaleFactor = 1/scaleFactorss * selection.scaleFactor
-          }else if(selection.type == "GROUP"){
-            selection.resize(selection.width/scaleFactorss,selection.height/scaleFactorss)
-          }
-          if(heighScale>widthScale){
-            selection.x = parentWidth/2-selection.width/2
-            selection.y = 0
-          }else{
-            selection.x = 0
-            selection.y = parentHeight/2-selection.height/2
-          }
+    if (selection.parent != figma.currentPage) {
+      var parentWidth: number
+      var parentHeight: number
+      if (selection.parent.type == "FRAME" || selection.parent.type == "COMPONENT") {
+        parentWidth = selection.parent.width
+        parentHeight = selection.parent.height
       }
+      var widthScale = selection.width / parentWidth
+      var heighScale = selection.height / parentHeight
+      var scaleFactorss = (widthScale > heighScale ? widthScale : heighScale)
+      console.log(scaleFactorss)
+      if (selection.type == "INSTANCE") {
+        selection.scaleFactor = 1 / scaleFactorss * selection.scaleFactor
+      } else if (selection.type == "GROUP" || selection.type == "RECTANGLE") {
+        selection.resize(selection.width / scaleFactorss, selection.height / scaleFactorss)
+      }
+      if (heighScale > widthScale) {
+        selection.x = parentWidth / 2 - selection.width / 2
+        selection.y = 0
+      } else {
+        selection.x = 0
+        selection.y = parentHeight / 2 - selection.height / 2
+      }
+    }
   }
   figma.closePlugin();
 }
@@ -313,6 +317,9 @@ function showPanel() {
       case "cloneAndReplace":
         cloneAndReplace()
         break;
+      case "superCloneAndReplace":
+        superCloneAndReplace()
+        break;
       case "framesToComponents":
         framesToComponents()
         break;
@@ -331,12 +338,12 @@ function showPanel() {
       case "moveDown":
         moveDown()
         break;
-      case "frameNamer":
-        frameNamer()
+      case "crazyDiamond":
+        crazyDiamond()
         break;
-        case "crazyDiamond":
-          crazyDiamond()
-          break;
+      case "tracingSource":
+        tracingSource()
+        break;
       default:
         break;
     }
@@ -344,14 +351,23 @@ function showPanel() {
     figma.closePlugin();
   }
 }
-function crazyDiamond(){
+function tracingSource() {
+  var selections = figma.currentPage.selection
+  var newSelections = new Array()
+  for (const selection of selections) {
+    if (selection.type == "INSTANCE")
+      newSelections.push(selection.mainComponent)
+  }
+  figma.currentPage.selection = newSelections
+}
+function crazyDiamond() {
   var selections = figma.currentPage.selection
   var offset = 0
-  for(var i = 0;i<selections.length;i++){
+  for (var i = 0; i < selections.length; i++) {
     var selection = selections[i]
-    if(selection.type != "FRAME"){
+    if (selection.type != "FRAME") {
       var frame = figma.createFrame()
-      frame.resize(selection.width,selection.height)
+      frame.resize(selection.width, selection.height)
       frame.x = selection.x
       frame.y = selection.y
       selection.parent.appendChild(frame)
@@ -361,21 +377,21 @@ function crazyDiamond(){
       frame.name = selection.name
       selection = frame
     }
-    if(selection.type == "FRAME"){
+    if (selection.type == "FRAME") {
       var children = selection.children
       var newComponent = figma.createComponent()
-      for(const child of children){
+      for (const child of children) {
         newComponent.appendChild(child.clone())
       }
-      newComponent.resize(selection.width,selection.height)
+      newComponent.resize(selection.width, selection.height)
       newComponent.name = selection.name
       newComponent.fills = selection.fills
       var selectionParent = selection.parent
-      while(selectionParent.parent != figma.currentPage){
+      while (selectionParent.parent != figma.currentPage) {
         selectionParent = selectionParent.parent
       }
-      if(selectionParent.type == "FRAME"){
-        newComponent.x = selectionParent.x+selectionParent.width+100+50*i+offset
+      if (selectionParent.type == "FRAME") {
+        newComponent.x = selectionParent.x + selectionParent.width + 100 + 50 * i + offset
         newComponent.y = selectionParent.y
         selectionParent.parent.appendChild(newComponent)
       }
@@ -384,57 +400,46 @@ function crazyDiamond(){
       newInstance.y = selection.y
       selection.parent.appendChild(newInstance)
       selection.remove()
-      offset = offset+newComponent.width
-    }
-  }
-}
-function frameNamer() {
-  var selections = figma.currentPage.selection
-  for (const selection of selections) {
-    if (selection.type == "FRAME") {
-      var backgroudNode = selection.findOne(n => n.type == "INSTANCE" && n.masterComponent.name === "交互文档页面")
-      if (backgroudNode == null) { continue }
-      if (backgroudNode.type == "INSTANCE") {
-        var textNode = backgroudNode.findOne(n => n.name == "文档名称")
-        if (textNode.type == "TEXT") {
-          selection.name = textNode.characters
-        }
-      }
+      offset = offset + newComponent.width
     }
   }
 }
 function moveDown() {
   var selections = figma.currentPage.selection;
   for (const selection of selections) {
-    selection.y += 1850
+    selection.y += 1900
   }
 }
 function loveTrain() {
   var selections = figma.currentPage.selection
-  var newSelections = new Array()
-  for (const selection of selections) {
-    newSelections.push(selection)
-  }
-  function sortByX(a, b) {
-    return a.x - b.x
-  }
-  newSelections.sort(sortByX)
-  if (newSelections.length != 0 && newSelections[0].parent.type == "FRAME") {
-    var parentX = newSelections[0].parent.x
-    var parentY = newSelections[0].parent.y
-    var parentWidth = newSelections[0].parent.width
-
-    var currentXOffset = 500
-    for (const selection of newSelections) {
-      if (selection.type == "INSTANCE") {
-        selection.masterComponent.x = currentXOffset + parentWidth + parentX
-        selection.masterComponent.y = parentY
-        currentXOffset = currentXOffset + selection.masterComponent.width + 100
-      }
-    }
+  if (selections.length != 1 || selections[0].type != "FRAME") {
+    alert("只能选中一个画板")
   } else {
-    figma.notify("不符合要求")
+    var selection = selections[0]
+    var otherFrames = figma.currentPage.findChildren(n => (n.x >= selection.x - 10 && n.x <= selection.x + 10) && n.y >= selection.y)
+    figma.currentPage.selection = otherFrames
   }
+  //figma.viewport.scrollAndZoomIntoView(newSelections)
+  // function sortByX(a, b) {
+  //   return a.x - b.x
+  // }
+  // newSelections.sort(sortByX)
+  // if (newSelections.length != 0 && newSelections[0].parent.type == "FRAME") {
+  //   var parentX = newSelections[0].parent.x
+  //   var parentY = newSelections[0].parent.y
+  //   var parentWidth = newSelections[0].parent.width
+
+  //   var currentXOffset = 500
+  //   for (const selection of newSelections) {
+  //     if (selection.type == "INSTANCE") {
+  //       selection.mainComponent.x = currentXOffset + parentWidth + parentX
+  //       selection.mainComponent.y = parentY
+  //       currentXOffset = currentXOffset + selection.mainComponent.width + 100
+  //     }
+  //   }
+  // } else {
+  //   figma.notify("不符合要求")
+  // }
 }
 function stoneFree() {
   //尝试创建一条线
@@ -501,8 +506,8 @@ function stoneFree() {
         console.log("endPoint:" + endPoint)
         var newVector = createVectorByPoints(
           [startPoint,
-            [endPoint[0] - 25, startPoint[1]],
-            [endPoint[0] - 25, endPoint[1]],
+            [endPoint[0] - 50, startPoint[1]],
+            [endPoint[0] - 50, endPoint[1]],
             endPoint])
         line.parent.appendChild(newVector)
         line.remove()
@@ -549,6 +554,47 @@ function framesToComponents() {
   }
   figma.closePlugin();
 }
+function superCloneAndReplace() {
+  var selections = figma.currentPage.selection
+  var otherSelections = [];
+  var tempInstance;
+  if (selections.length >= 2) {
+    for (var i = 0; i < selections.length; i++) {
+      if (selections[i].type == "COMPONENT" || selections[i].name == "mother") {
+        tempInstance = selections[i]
+      } else {
+        otherSelections.push(selections[i]);
+      }
+    }
+    for (const selection of otherSelections) {
+      var newInstance
+      if (tempInstance.type == "COMPONENT") {
+        newInstance = tempInstance.createInstance()
+      } else {
+        newInstance = tempInstance.clone()
+      }
+      figma.currentPage.appendChild(newInstance)
+      newInstance.scaleFactor = selection.width / newInstance.width
+      figma.currentPage.selection = [newInstance, selection]
+      //将selection 的值赋给newInstance
+      var selectionChild = selection.findAll(n => n.type == "TEXT")
+      var newInstanceChild = newInstance.findAll(n => n.type == "TEXT")
+      var count = selectionChild.length > newInstanceChild ? newInstanceChild : selectionChild.length
+      console.log("最小数量：" + count)
+      for (var i = 0; i < count; i++) {
+        if (newInstanceChild[0].type == "TEXT" && selectionChild[0].type == "TEXT") {
+          console.log("交换文字：" + newInstanceChild[0].characters + "-" + selectionChild[0].characters)
+          newInstanceChild[0].characters == selectionChild[0].characters
+          console.log("交换成功")
+        }
+      }
+      exchangePosition()
+      selection.remove()
+      renameEverything()
+    }
+    figma.currentPage.selection = [tempInstance]
+  }
+}
 function cloneAndReplace() {
   var selections = figma.currentPage.selection
   var otherSelections = [];
@@ -569,6 +615,7 @@ function cloneAndReplace() {
         newInstance = tempInstance.clone()
       }
       figma.currentPage.appendChild(newInstance)
+      newInstance.scaleFactor = selection.width / newInstance.width
       figma.currentPage.selection = [newInstance, selection]
       exchangePosition()
       selection.remove()
@@ -610,7 +657,7 @@ function exchangePosition() {
   }
 }
 function renameEverything() {
-  console.log("重命名图层")
+  console.log("自动命名")
   var selections = figma.currentPage.selection;
   for (const selection of selections) {
     renameSelection(selection);
@@ -639,42 +686,43 @@ function renameEverything() {
       //形状
       selection.name = "矢量形状 " + fills2String(selection.fills)
     } else if (selection.type == "BOOLEAN_OPERATION") {
+      //布尔形状
       selection.name = "复杂形状 " + fills2String(selection.fills)
     } else if (selection.type == "INSTANCE") {
+      //实例
       var selectionTexts = getAllTextLayer(selection);
       var endfix = "";
       for (const text of selectionTexts) {
         endfix = (text + "|") + endfix
       }
       endfix = endfix.slice(0, -1)
-      selection.name = "实例 " + splitText(selection.masterComponent.name) + " " + endfix
+      selection.name = "实例 " + splitText(selection.mainComponent.name) + " " + endfix
     } else if (selection.type == "GROUP") {
+      //组
       var children = selection.children
       for (const child of children) {
         renameSelection(child)
       }
-      var selectionTexts = getAllTextLayer(selection);
-      var endfix = "";
-      for (const text of selectionTexts) {
-        endfix = (text + "|") + endfix
+      var textNodes = selection.findAll(n => n.type == "TEXT")
+      if (textNodes.length != 0) {
+        var bigestTextNode = textNodes[0]
+        for (var i = 1; i < textNodes.length; i++) {
+          // @ts-ignore
+          if (bigestTextNode.fontSize < textNodes[i].fontSize) {
+            bigestTextNode = textNodes[i]
+          }
+        }
+        // @ts-ignore
+        selection.name = bigestTextNode.characters.replace("\n", "")
       }
-      endfix = endfix.slice(0, -1)
-
-      selection.name = "文件夹[" + children.length + "] " + endfix
     } else if (selection.type == "FRAME") {
+      //框架
       var children = selection.children
       for (const child of children) {
         renameSelection(child)
       }
-      // var selectionTexts = getAllTextLayer(selection);
-      // var endfix = "";
-      // for(const text of selectionTexts){
-      //   endfix += (text+"|")
-      // }
-      // endfix = endfix.slice(0,-1)
-
-      // selection.name = "画框["+children.length+"] " + endfix
     } else if (selection.type == "COMPONENT") {
+      //组件
       var children = selection.children
       console.log("组件 " + children.length)
       for (const child of children) {
@@ -682,6 +730,7 @@ function renameEverything() {
         renameSelection(child)
       }
     } else if (selection.type == "SLICE") {
+      //切片
       selection.name = "切片 " + selection.width + "×" + selection.height
     }
   }
