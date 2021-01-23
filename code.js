@@ -33,15 +33,63 @@ switch (figma.command) {
 }
 //用一个公共变量保存已经加载的字体
 var loadedFonts = new Array();
+function badCompany() {
+    var selections = figma.currentPage.selection;
+    var instanceSelections = [];
+    if (selections.length > 0) {
+        var totalWidth = 0;
+        for (const selection of selections) {
+            if (selection.type == "INSTANCE") {
+                instanceSelections.push(selection);
+                totalWidth = totalWidth + selection.width;
+            }
+        }
+        if (instanceSelections.length == 0) {
+            figma.notify("请至少选择一个实例");
+        }
+        else {
+            function sortNumber(a, b) {
+                return a.x - b.x;
+            }
+            instanceSelections.sort(sortNumber);
+            //计算缩放因素
+            var scaleFactor = (instanceSelections[0].parent.width * 0.8) / totalWidth;
+            var spacing = 0;
+            if (scaleFactor > 1) {
+                scaleFactor = 1;
+            }
+            if (instanceSelections.length > 1) {
+                spacing = instanceSelections[0].parent.width * 0.1 / (instanceSelections.length - 1);
+            }
+            if (spacing < 100) {
+                spacing = Math.floor(spacing);
+            }
+            else {
+                spacing = 100;
+            }
+            var realTotalWidth = 0;
+            for (var i = 0; i < instanceSelections.length; i++) {
+                var realWidth = Math.floor(instanceSelections[i].width * scaleFactor);
+                instanceSelections[i].scaleFactor = realWidth / instanceSelections[i].mainComponent.width;
+                realTotalWidth = realTotalWidth + realWidth;
+            }
+            var spacingSumTotalWidth = realTotalWidth + spacing * (instanceSelections.length - 1);
+            //总宽度，依据总宽度决定是否要适当增加spacing
+            if (spacingSumTotalWidth < (instanceSelections[0].parent.width * 0.8) ||
+                (realTotalWidth + 100 * (instanceSelections.length - 1)) < instanceSelections[0].parent.width) {
+                spacing = 100;
+            }
+            var orginX = (instanceSelections[0].parent.width - realTotalWidth - spacing * (instanceSelections.length - 1)) / 2;
+            instanceSelections[0].x = orginX;
+            instanceSelections[0].y = (instanceSelections[0].parent.height - instanceSelections[0].height) / 2;
+            for (var i = 1; i < instanceSelections.length; i++) {
+                instanceSelections[i].x = instanceSelections[i - 1].x + instanceSelections[i - 1].width + spacing;
+                instanceSelections[i].y = (instanceSelections[i].parent.height - instanceSelections[i].height) / 2;
+            }
+        }
+    }
+}
 function sortInstance() {
-    //scale factor by instance number
-    // 1-1
-    // 2-1
-    // 3-1
-    // 4-1
-    // 5-1
-    // 6-0.833333
-    // 7-0.666666
     var scaleFactors = [1, 1, 1, 1, 1, 4 / 5, 7 / 10];
     var selections = figma.currentPage.selection;
     var instanceSelections = [];
@@ -319,6 +367,9 @@ function showPanel() {
             case "sortInstance":
                 sortInstance();
                 break;
+            case "badCompany":
+                badCompany();
+                break;
             case "exchangePosition":
                 exchangePosition();
                 break;
@@ -349,20 +400,40 @@ function showPanel() {
             case "moveDown":
                 moveDown();
                 break;
-            case "frameNamer":
-                frameNamer();
-                break;
             case "crazyDiamond":
                 crazyDiamond();
                 break;
             case "tracingSource":
                 tracingSource();
                 break;
+            case "getFat":
+                getFat();
+                break;
             default:
                 break;
         }
-        figma.closePlugin();
+        //figma.closePlugin();
     });
+}
+function getFat() {
+    var selections = figma.currentPage.selection;
+    for (const selection of selections) {
+        if (selection.type == "RECTANGLE" || selection.type == "INSTANCE") {
+            if (selection.parent.type == "FRAME" || selection.parent.type == "COMPONENT") {
+                selection.x = 0;
+                selection.y = 0;
+                selection.resize(selection.parent.width, selection.parent.height);
+            }
+            else if (selection.parent.type == "GROUP") {
+                selection.x = selection.parent.x;
+                selection.y = selection.parent.y;
+                selection.resize(selection.parent.width, selection.parent.height);
+            }
+            else {
+                figma.notify("爸爸不允许你膨胀");
+            }
+        }
+    }
 }
 function tracingSource() {
     var selections = figma.currentPage.selection;
@@ -416,41 +487,6 @@ function crazyDiamond() {
             offset = offset + newComponent.width;
         }
     }
-}
-function frameNamer() {
-    var selections = figma.currentPage.selection;
-    for (const selection of selections) {
-        if (selection.type == "FRAME" || selection.type == "GROUP") {
-            var textNodes = selection.findAll(n => n.type == "TEXT");
-            if (textNodes.length == 0) {
-                continue;
-            }
-            else {
-                var bigestTextNode = textNodes[0];
-                for (var i = 1; i < textNodes.length; i++) {
-                    // @ts-ignore
-                    if (bigestTextNode.fontSize < textNodes[i].fontSize) {
-                        bigestTextNode = textNodes[i];
-                    }
-                }
-                // @ts-ignore
-                selection.name = bigestTextNode.characters.replace("\n", "");
-            }
-        }
-    }
-    // var selections = figma.currentPage.selection
-    // for (const selection of selections) {
-    //   if (selection.type == "FRAME") {
-    //     var backgroudNode = selection.findOne(n => n.type == "INSTANCE" && n.mainComponent.name === "交互文档页面")
-    //     if (backgroudNode == null) { continue }
-    //     if (backgroudNode.type == "INSTANCE") {
-    //       var textNode = backgroudNode.findOne(n => n.name == "文档名称")
-    //       if (textNode.type == "TEXT") {
-    //         selection.name = textNode.characters
-    //       }
-    //     }
-    //   }
-    // }
 }
 function moveDown() {
     var selections = figma.currentPage.selection;
@@ -706,7 +742,7 @@ function exchangePosition() {
     }
 }
 function renameEverything() {
-    console.log("重命名图层");
+    console.log("自动命名");
     var selections = figma.currentPage.selection;
     for (const selection of selections) {
         renameSelection(selection);
@@ -742,44 +778,65 @@ function renameEverything() {
             selection.name = "矢量形状 " + fills2String(selection.fills);
         }
         else if (selection.type == "BOOLEAN_OPERATION") {
+            //布尔形状
             selection.name = "复杂形状 " + fills2String(selection.fills);
         }
         else if (selection.type == "INSTANCE") {
-            var selectionTexts = getAllTextLayer(selection);
-            var endfix = "";
-            for (const text of selectionTexts) {
-                endfix = (text + "|") + endfix;
+            //实例
+            var textNodes = selection.findAll(n => n.type == "TEXT");
+            if (textNodes.length != 0) {
+                var bigestTextNode = textNodes[0];
+                for (var i = 1; i < textNodes.length; i++) {
+                    // @ts-ignore
+                    if (bigestTextNode.fontSize < textNodes[i].fontSize) {
+                        bigestTextNode = textNodes[i];
+                    }
+                }
+                // @ts-ignore
+                selection.name = bigestTextNode.characters.replace("\n", "");
             }
-            endfix = endfix.slice(0, -1);
-            selection.name = "实例 " + splitText(selection.mainComponent.name) + " " + endfix;
+            selection.name = "[" + splitText(selection.mainComponent.name) + "]" + selection.name;
         }
         else if (selection.type == "GROUP") {
+            //组
             var children = selection.children;
             for (const child of children) {
                 renameSelection(child);
             }
-            var selectionTexts = getAllTextLayer(selection);
-            var endfix = "";
-            for (const text of selectionTexts) {
-                endfix = (text + "|") + endfix;
+            var textNodes = selection.findAll(n => n.type == "TEXT");
+            if (textNodes.length != 0) {
+                var bigestTextNode = textNodes[0];
+                for (var i = 1; i < textNodes.length; i++) {
+                    // @ts-ignore
+                    if (bigestTextNode.fontSize < textNodes[i].fontSize) {
+                        bigestTextNode = textNodes[i];
+                    }
+                }
+                // @ts-ignore
+                selection.name = "[" + children.length + "]" + bigestTextNode.characters.replace("\n", "");
             }
-            endfix = endfix.slice(0, -1);
-            selection.name = "文件夹[" + children.length + "] " + endfix;
         }
         else if (selection.type == "FRAME") {
+            //框架
             var children = selection.children;
             for (const child of children) {
                 renameSelection(child);
             }
-            // var selectionTexts = getAllTextLayer(selection);
-            // var endfix = "";
-            // for(const text of selectionTexts){
-            //   endfix += (text+"|")
-            // }
-            // endfix = endfix.slice(0,-1)
-            // selection.name = "画框["+children.length+"] " + endfix
+            var textNodes = selection.findAll(n => n.type == "TEXT");
+            if (textNodes.length != 0) {
+                var bigestTextNode = textNodes[0];
+                for (var i = 1; i < textNodes.length; i++) {
+                    // @ts-ignore
+                    if (bigestTextNode.fontSize < textNodes[i].fontSize) {
+                        bigestTextNode = textNodes[i];
+                    }
+                }
+                // @ts-ignore
+                selection.name = bigestTextNode.characters.replace("\n", "");
+            }
         }
         else if (selection.type == "COMPONENT") {
+            //组件
             var children = selection.children;
             console.log("组件 " + children.length);
             for (const child of children) {
@@ -788,6 +845,7 @@ function renameEverything() {
             }
         }
         else if (selection.type == "SLICE") {
+            //切片
             selection.name = "切片 " + selection.width + "×" + selection.height;
         }
     }
@@ -892,7 +950,7 @@ function renameEverything() {
             return '';
         }
     }
-    figma.closePlugin();
+    console.log("重新命名结束");
 }
 function translate() {
     return __awaiter(this, void 0, void 0, function* () {
