@@ -625,7 +625,6 @@ function framesToComponents() {
     figma.currentPage.selection = figma.currentPage.selection.concat([component])
     frame.remove();
   }
-  figma.closePlugin();
 }
 function superCloneAndReplace() {
   var selections = figma.currentPage.selection
