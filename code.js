@@ -204,7 +204,6 @@ function addTitleToInstance() {
                 figma.notify("请至少选择一个图层");
             }
         }
-        figma.closePlugin();
     });
 }
 function loadNodeFonts(textNodes) {
@@ -740,13 +739,11 @@ function exchangePosition() {
     }
 }
 function renameEverything() {
-    console.log("自动命名");
     var selections = figma.currentPage.selection;
     for (const selection of selections) {
         renameSelection(selection);
     }
     function renameSelection(selection) {
-        console.log(selection.type);
         //如果是文本图层
         if (selection.type == "TEXT") {
             selection.name = selection.characters;
@@ -823,7 +820,11 @@ function renameEverything() {
             var textNodes = selection.findAll(n => n.type == "TEXT");
             if (textNodes.length != 0) {
                 var bigestTextNode = textNodes[0];
-                for (var i = 1; i < textNodes.length; i++) {
+                for (var i = 0; i < textNodes.length; i++) {
+                    if (textNodes[i].name == "文档名称") {
+                        bigestTextNode = textNodes[i];
+                        break;
+                    }
                     // @ts-ignore
                     if (bigestTextNode.fontSize < textNodes[i].fontSize) {
                         bigestTextNode = textNodes[i];

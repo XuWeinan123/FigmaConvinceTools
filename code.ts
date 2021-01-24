@@ -44,39 +44,39 @@ function badCompany() {
       }
       instanceSelections.sort(sortNumber)
       //计算缩放因素
-      var scaleFactor = (instanceSelections[0].parent.width*0.8)/totalWidth
+      var scaleFactor = (instanceSelections[0].parent.width * 0.8) / totalWidth
       var spacing = 0
 
-      if(scaleFactor > 1){
+      if (scaleFactor > 1) {
         scaleFactor = 1
       }
-      if(instanceSelections.length > 1){
-        spacing = instanceSelections[0].parent.width*0.1 / (instanceSelections.length-1)
+      if (instanceSelections.length > 1) {
+        spacing = instanceSelections[0].parent.width * 0.1 / (instanceSelections.length - 1)
       }
-      if(spacing < 100){
+      if (spacing < 100) {
         spacing = Math.floor(spacing)
-      }else{
+      } else {
         spacing = 100
       }
 
       var realTotalWidth = 0
-      for(var i = 0;i<instanceSelections.length;i++){
+      for (var i = 0; i < instanceSelections.length; i++) {
         var realWidth = Math.floor(instanceSelections[i].width * scaleFactor)
-        instanceSelections[i].scaleFactor = realWidth/instanceSelections[i].mainComponent.width
+        instanceSelections[i].scaleFactor = realWidth / instanceSelections[i].mainComponent.width
         realTotalWidth = realTotalWidth + realWidth
       }
-      var spacingSumTotalWidth = realTotalWidth + spacing*(instanceSelections.length-1)
+      var spacingSumTotalWidth = realTotalWidth + spacing * (instanceSelections.length - 1)
       //总宽度，依据总宽度决定是否要适当增加spacing
-      if(spacingSumTotalWidth<(instanceSelections[0].parent.width*0.8) || 
-      (realTotalWidth + 100*(instanceSelections.length-1))<instanceSelections[0].parent.width){
+      if (spacingSumTotalWidth < (instanceSelections[0].parent.width * 0.8) ||
+        (realTotalWidth + 100 * (instanceSelections.length - 1)) < instanceSelections[0].parent.width) {
         spacing = 100
       }
-      var orginX = (instanceSelections[0].parent.width-realTotalWidth-spacing*(instanceSelections.length-1))/2
+      var orginX = (instanceSelections[0].parent.width - realTotalWidth - spacing * (instanceSelections.length - 1)) / 2
       instanceSelections[0].x = orginX
-      instanceSelections[0].y = (instanceSelections[0].parent.height - instanceSelections[0].height)/2
-      for(var i = 1;i<instanceSelections.length;i++){
-        instanceSelections[i].x = instanceSelections[i-1].x+instanceSelections[i-1].width+spacing
-        instanceSelections[i].y = (instanceSelections[i].parent.height - instanceSelections[i].height)/2
+      instanceSelections[0].y = (instanceSelections[0].parent.height - instanceSelections[0].height) / 2
+      for (var i = 1; i < instanceSelections.length; i++) {
+        instanceSelections[i].x = instanceSelections[i - 1].x + instanceSelections[i - 1].width + spacing
+        instanceSelections[i].y = (instanceSelections[i].parent.height - instanceSelections[i].height) / 2
       }
     }
   }
@@ -194,7 +194,6 @@ async function addTitleToInstance() {
       figma.notify("请至少选择一个图层")
     }
   }
-  figma.closePlugin()
 }
 
 async function loadNodeFonts(textNodes) {
@@ -357,9 +356,9 @@ function showPanel() {
       case "sortInstance":
         sortInstance()
         break;
-        case "badCompany":
-          badCompany()
-          break;
+      case "badCompany":
+        badCompany()
+        break;
       case "exchangePosition":
         exchangePosition()
         break;
@@ -414,7 +413,7 @@ function getFat() {
         selection.x = 0
         selection.y = 0
         selection.resize(selection.parent.width, selection.parent.height)
-      }else if(selection.parent.type == "GROUP"){
+      } else if (selection.parent.type == "GROUP") {
         selection.x = selection.parent.x
         selection.y = selection.parent.y
         selection.resize(selection.parent.width, selection.parent.height)
@@ -728,13 +727,11 @@ function exchangePosition() {
   }
 }
 function renameEverything() {
-  console.log("自动命名")
   var selections = figma.currentPage.selection;
   for (const selection of selections) {
     renameSelection(selection);
   }
   function renameSelection(selection) {
-    console.log(selection.type)
     //如果是文本图层
     if (selection.type == "TEXT") {
       selection.name = selection.characters
@@ -801,7 +798,11 @@ function renameEverything() {
       var textNodes = selection.findAll(n => n.type == "TEXT")
       if (textNodes.length != 0) {
         var bigestTextNode = textNodes[0]
-        for (var i = 1; i < textNodes.length; i++) {
+        for (var i = 0; i < textNodes.length; i++) {
+          if(textNodes[i].name == "文档名称"){
+            bigestTextNode = textNodes[i]
+            break;
+          }
           // @ts-ignore
           if (bigestTextNode.fontSize < textNodes[i].fontSize) {
             bigestTextNode = textNodes[i]
