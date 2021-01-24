@@ -340,7 +340,7 @@ function perArtboardRename() {
 
 function showPanel() {
   figma.showUI(__html__)
-  figma.ui.resize(300, 300)
+  figma.ui.resize(400, 310)
   //console.log("got")
   figma.ui.onmessage = async (message) => {
     console.log("点按了面板上的方法 ", message)
@@ -600,7 +600,6 @@ function stoneFree() {
     //   line.strokeJoin = "ROUND"
     // }
   }
-  figma.closePlugin();
 }
 function framesToComponents() {
   var selections = figma.currentPage.selection

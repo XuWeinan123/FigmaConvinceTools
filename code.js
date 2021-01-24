@@ -350,7 +350,7 @@ function perArtboardRename() {
 }
 function showPanel() {
     figma.showUI(__html__);
-    figma.ui.resize(300, 300);
+    figma.ui.resize(400, 310);
     //console.log("got")
     figma.ui.onmessage = (message) => __awaiter(this, void 0, void 0, function* () {
         console.log("点按了面板上的方法 ", message);
@@ -611,7 +611,6 @@ function stoneFree() {
         //   line.strokeJoin = "ROUND"
         // }
     }
-    figma.closePlugin();
 }
 function framesToComponents() {
     var selections = figma.currentPage.selection;
@@ -636,7 +635,6 @@ function framesToComponents() {
         figma.currentPage.selection = figma.currentPage.selection.concat([component]);
         frame.remove();
     }
-    figma.closePlugin();
 }
 function superCloneAndReplace() {
     var selections = figma.currentPage.selection;
