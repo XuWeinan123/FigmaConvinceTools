@@ -342,7 +342,7 @@ function showPanel() {
   figma.ui.resize(400, 310)
   //console.log("got")
   figma.ui.onmessage = async (message) => {
-    console.log("点按了面板上的方法 ", message)
+    //console.log("点按了面板上的方法 ", message)
     switch (message) {
       case "connectOne":
         stoneFree();
@@ -398,11 +398,32 @@ function showPanel() {
       case "getFat":
         getFat()
         break;
+        case "forceQueue":
+          forceQueue()
+          break;
       default:
         break;
     }
 
     //figma.closePlugin();
+  }
+}
+function forceQueue(){
+  var selections = figma.currentPage.selection
+  var componentSelections = []
+  var mainFrame
+  for(const selection of selections){
+    if(selection.type == "FRAME"){
+      mainFrame = selection
+    }else{
+      componentSelections.push(selection)
+    }
+  }
+  var sumWidth = 0;
+  for(var i = 0;i<componentSelections.length;i++){
+    componentSelections[i].x = mainFrame.x+mainFrame.width + 100 + sumWidth + i*50
+    componentSelections[i].y = mainFrame.y
+    sumWidth = sumWidth+componentSelections[i].width
   }
 }
 function getFat() {

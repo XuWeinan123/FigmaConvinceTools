@@ -2148,8 +2148,14 @@
 <button id="crazyDiamond" class="button button-3d button-caution button-rounded">疯狂钻石</button>
 <button id="tracingSource" class="button button-3d button-primary button-rounded">追根溯源</button>
 <button id="getFat" class="button button-3d button-action button-rounded">我膨胀了</button>
+<button id="forceQueue" class="button button-3d button-action button-rounded">强制排队</button>
 
 <script>
+    document.getElementById('forceQueue').onclick = () => {
+        parent.postMessage({
+            pluginMessage: 'forceQueue'
+        }, '*')
+    }
     document.getElementById('getFat').onclick = () => {
         parent.postMessage({
             pluginMessage: 'getFat'
