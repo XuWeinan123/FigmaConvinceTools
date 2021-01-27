@@ -354,53 +354,17 @@ function showPanel() {
     figma.ui.onmessage = (message) => __awaiter(this, void 0, void 0, function* () {
         //console.log("点按了面板上的方法 ", message)
         switch (message) {
-            case "connectOne":
-                stoneFree();
-                break;
             case "renameEverything":
                 renameEverything();
-                break;
-            case "translate":
-                translate();
-                break;
-            case "sortInstance":
-                sortInstance();
-                break;
-            case "badCompany":
-                badCompany();
                 break;
             case "exchangePosition":
                 exchangePosition();
                 break;
-            case "printObject":
-                printObject();
-                break;
-            case "cloneAndReplace":
-                cloneAndReplace();
-                break;
-            case "superCloneAndReplace":
-                superCloneAndReplace();
-                break;
             case "framesToComponents":
                 framesToComponents();
                 break;
-            case "stoneFree":
-                stoneFree();
-                break;
-            case "addTitleToInstance":
-                addTitleToInstance();
-                break;
             case "exportSelectedFramesToPDF":
                 exportSelectedFramesToPDF();
-                break;
-            case "loveTrain":
-                loveTrain();
-                break;
-            case "moveDown":
-                moveDown();
-                break;
-            case "crazyDiamond":
-                crazyDiamond();
                 break;
             case "tracingSource":
                 tracingSource();
@@ -408,8 +372,35 @@ function showPanel() {
             case "getFat":
                 getFat();
                 break;
+            case "stoneFree":
+                stoneFree();
+                break;
+            case "loveTrain":
+                loveTrain();
+                break;
+            case "crazyDiamond":
+                crazyDiamond();
+                break;
+            case "badCompany":
+                badCompany();
+                break;
+            case "sortInstance":
+                sortInstance();
+                break;
+            case "cloneAndReplace":
+                cloneAndReplace();
+                break;
+            case "addTitleToInstance":
+                addTitleToInstance();
+                break;
+            case "superCloneAndReplace":
+                superCloneAndReplace();
+                break;
             case "forceQueue":
                 forceQueue();
+                break;
+            case "moveDown":
+                moveDown();
                 break;
             default:
                 break;
@@ -462,6 +453,9 @@ function tracingSource() {
     for (const selection of selections) {
         if (selection.type == "INSTANCE")
             newSelections.push(selection.mainComponent);
+    }
+    if (newSelections.length == 0) {
+        figma.notify("你没有选择实例，无法找到对应的组件");
     }
     figma.currentPage.selection = newSelections;
 }
@@ -641,6 +635,9 @@ function framesToComponents() {
             newFrames.push(selection);
         }
     }
+    if (newFrames.length == 0) {
+        figma.notify("你至少给我选择一个 Frame 吧？");
+    }
     for (const frame of newFrames) {
         var component = figma.createComponent();
         component.resizeWithoutConstraints(frame.width, frame.height);
@@ -746,22 +743,56 @@ function log(object) {
 function exchangePosition() {
     var selections = figma.currentPage.selection;
     if (selections.length == 2) {
-        console.log(selections[0].parent);
-        console.log(selections[1].parent);
         var tempParentNode0 = selections[0].parent;
         var tempParentNode1 = selections[1].parent;
         var tempX = selections[1].x;
         var tempY = selections[1].y;
-        tempParentNode0.appendChild(selections[1]);
+        var index0 = getIndexInParent(selections[0].parent, selections[0]);
+        var index1 = getIndexInParent(selections[1].parent, selections[1]);
+        tempParentNode0.insertChild(index0, selections[1]);
         selections[1].x = selections[0].x;
         selections[1].y = selections[0].y;
-        tempParentNode1.appendChild(selections[0]);
+        tempParentNode1.insertChild(index1, selections[0]);
         selections[0].x = tempX;
         selections[0].y = tempY;
+    }
+    else if (selections.length <= 1) {
+        figma.notify("请至少选择两个画板");
+    }
+    else {
+        var tempPositions = [selections[0].x, selections[0].y];
+        var tempParent = selections[0].parent;
+        var indexs = [];
+        for (var j = 0; j < selections.length; j++) {
+            indexs.push(getIndexInParent(selections[j].parent, selections[j]));
+            console.log(j + "-" + indexs[j] + "-" + selections[j].name);
+        }
+        for (var i = 1; i < selections.length; i++) {
+            selections[i - 1].x = selections[i].x;
+            selections[i - 1].y = selections[i].y;
+            selections[i].parent.insertChild(indexs[i], selections[i - 1]);
+        }
+        selections[selections.length - 1].x = tempPositions[0];
+        selections[selections.length - 1].y = tempPositions[1];
+        tempParent.insertChild(indexs[0], selections[selections.length - 1]);
+    }
+    function getIndexInParent(parent, child) {
+        var children = parent.children;
+        var index = -1;
+        for (var i = 0; i < children.length; i++) {
+            if (children[i].id == child.id) {
+                index = i;
+            }
+        }
+        return index;
     }
 }
 function renameEverything() {
     var selections = figma.currentPage.selection;
+    if (selections.length == 0) {
+        figma.notify("请先选择一个对象来进行命名");
+        return;
+    }
     for (const selection of selections) {
         renameSelection(selection);
     }
