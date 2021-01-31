@@ -2135,6 +2135,7 @@
 <button id="framesToComponents" class="button button-3d button-primary button-rounded">画板转组</button>
 <button id="exportSelectedFramesToPDF" class="button button-3d button-primary button-rounded">导出PDF</button>
 <button id="tracingSource" class="button button-3d button-primary button-rounded">追根溯源</button>
+<button id="tracingChild" class="button button-3d button-primary button-rounded">源溯根追</button>
 <button id="getFat" class="button button-3d button-primary button-rounded">我膨胀了</button>
 <button id="stoneFree" class="button button-3d button-caution button-rounded">石之自由</button>
 <button id="loveTrain" class="button button-3d button-caution button-rounded">爱之列车</button>
@@ -2155,6 +2156,11 @@
     document.getElementById('getFat').onclick = () => {
         parent.postMessage({
             pluginMessage: 'getFat'
+        }, '*')
+    }
+    document.getElementById('tracingChild').onclick = () => {
+        parent.postMessage({
+            pluginMessage: 'tracingChild'
         }, '*')
     }
     document.getElementById('tracingSource').onclick = () => {

@@ -4,16 +4,22 @@
   "api": "1.0.0",
   "main": "code.js",
   "ui": "ui.html",
-  "menu":[
-    {"name":"Adjust Frame&Rect Size",
-      "menu":[
-        {"name": "Adjust2Portrait", "command": "phonePortrait"},
-        {"name": "Adjust2Horizontal", "command": "phoneHorizontal"},
-        {"name": "Adjust2DocumentSize", "command": "documentSize"},
-        {"name": "Adjust2Auto", "command": "phoneAuto"}
-      ]
+  "menu": [
+    {
+      "name": "Adjust2Portrait",
+      "command": "phonePortrait"
     },
-    {"name": "Rename Frame Name", "command": "perArtboardRename"},
-    {"name": "Show Panel", "command": "showPanel"}
+    {
+      "name": "Adjust2Horizontal",
+      "command": "phoneHorizontal"
+    },
+    {
+      "name": "Adjust2DocumentSize",
+      "command": "documentSize"
+    },
+    {
+      "name": "Show Panel",
+      "command": "showPanel"
+    }
   ]
 }

@@ -339,7 +339,7 @@ function perArtboardRename() {
 
 function showPanel() {
   figma.showUI(__html__)
-  figma.ui.resize(400, 310)
+  figma.ui.resize(400, 360)
   //console.log("got")
   figma.ui.onmessage = async (message) => {
     //console.log("点按了面板上的方法 ", message)
@@ -359,6 +359,9 @@ function showPanel() {
       case "tracingSource":
         tracingSource()
         break;
+        case "tracingChild":
+            tracingChild();
+            break;
       case "getFat":
         getFat()
         break;
@@ -420,7 +423,7 @@ function forceQueue() {
 function getFat() {
   var selections = figma.currentPage.selection
   for (const selection of selections) {
-    if (selection.type == "RECTANGLE" || selection.type == "INSTANCE") {
+    if (selection.type == "RECTANGLE" || selection.type == "INSTANCE" || selection.type == "VECTOR" || selection.type == "ELLIPSE" || selection.type == "POLYGON") {
       if (selection.parent.type == "FRAME" || selection.parent.type == "COMPONENT") {
         selection.x = 0
         selection.y = 0
@@ -432,8 +435,26 @@ function getFat() {
       } else {
         figma.notify("爸爸不允许你膨胀")
       }
+    } else {
+      figma.notify("暂不支持此类型图层膨胀")
     }
   }
+}
+function tracingChild(){
+  var selections = figma.currentPage.selection
+  var newSelections = []
+  for (const selection of selections) {
+    if (selection.type == "COMPONENT"){
+      var instances = figma.currentPage.findAll(n=>n.type=="INSTANCE" && n.mainComponent == selection)
+      for(const instance of instances){
+        newSelections.push(instance)
+      }
+    }
+  }
+  if (newSelections.length == 0) {
+    figma.notify("查找失败")
+  }
+  figma.currentPage.selection = newSelections
 }
 function tracingSource() {
   var selections = figma.currentPage.selection
