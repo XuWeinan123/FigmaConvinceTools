@@ -473,8 +473,11 @@ function tracingSource() {
     var selections = figma.currentPage.selection;
     var newSelections = new Array();
     for (const selection of selections) {
-        if (selection.type == "INSTANCE")
-            newSelections.push(selection.mainComponent);
+        if (selection.type == "INSTANCE") {
+            if (selection.mainComponent.parent == figma.currentPage) {
+                newSelections.push(selection.mainComponent);
+            }
+        }
     }
     if (newSelections.length == 0) {
         figma.notify("你没有选择实例，无法找到对应的组件");
