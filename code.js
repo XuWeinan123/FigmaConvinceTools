@@ -163,6 +163,8 @@ function addTitleToInstance() {
                 else {
                     if (titleInstance.type == "INSTANCE") {
                         console.log(instanceSelections.length);
+                        //最小的那个实例
+                        var minestX = 2400;
                         for (const instanceSelection of instanceSelections) {
                             //画板的编号
                             var count = 0;
@@ -184,18 +186,22 @@ function addTitleToInstance() {
                             if (titleChild.type == "TEXT") {
                                 titleChild.characters = instanceSelection.mainComponent.name;
                             }
+                            //找到最小的x坐标
+                            if (instanceSelection.x < minestX) {
+                                minestX = instanceSelection.x;
+                            }
                         }
                     }
                     if (declareInstance.type == "INSTANCE") {
                         var tempInstance = declareInstance.clone();
                         instanceSelections[0].parent.appendChild(tempInstance);
-                        tempInstance.x = instanceSelections[0].x;
+                        tempInstance.x = minestX;
                         tempInstance.y = instanceSelections[0].y + instanceSelections[0].height + 50;
                         tempInstance.resize(instanceSelections[0].width * 2 + 100, tempInstance.height);
                         var declareChild = tempInstance.findOne(node => node.name === "说明文案");
                         yield loadNodeFonts([declareChild]);
                         if (declareChild.type == "TEXT") {
-                            declareChild.characters = "交互、文案、逻辑说明类，使用此颜色。";
+                            declareChild.characters = "交互、文案、逻辑说明类，使用此颜色。（Created By Plugins）";
                         }
                     }
                 }
@@ -639,17 +645,6 @@ function stoneFree() {
             }
             figma.currentPage.selection = lineSelections;
         }
-        // var vectorNetwork = lines[0].vectorNetwork
-        // var vertices = vectorNetwork.vertices
-        // for (const vertex of vertices) {
-        //   console.log(vertex.x + "," + vertex.y + "\n" + vertex.strokeCap)
-        // }
-        // for (const line of lines) {
-        //   line.strokes = [{ type: "SOLID", color: { b: 0.39215686274, g: 0.39215686274, r: 0.39215686274 } }]
-        //   line.strokeWeight = 6;
-        //   line.strokeCap = "ROUND"
-        //   line.strokeJoin = "ROUND"
-        // }
     }
 }
 function framesToComponents() {
