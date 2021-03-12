@@ -135,8 +135,8 @@ async function addTitleToInstance() {
   const symbolPage = figma.currentPage;
   if (symbolPage.type === "PAGE") {
     const titleInstance = symbolPage.findChild(node => node.type === "INSTANCE" && node.name === "页面描述")
-    const declareInstance = symbolPage.findChild(node => node.type === "INSTANCE" && node.name === "1文档/1-交互逻辑")
-    if (titleInstance == null && declareInstance == null) {
+    const declareInstance = symbolPage.findChild(node => node.type === "INSTANCE" && node.name === "1-交互逻辑")
+    if (titleInstance == null || declareInstance == null) {
       figma.notify("请把东西放到这个画板里")
       return
     }
@@ -177,7 +177,7 @@ async function addTitleToInstance() {
             }
 
             //找到最小的x坐标
-            if(instanceSelection.x < minestX){
+            if (instanceSelection.x < minestX) {
               minestX = instanceSelection.x
             }
           }
@@ -366,9 +366,9 @@ function showPanel() {
       case "tracingSource":
         tracingSource()
         break;
-        case "tracingChild":
-            tracingChild();
-            break;
+      case "tracingChild":
+        tracingChild();
+        break;
       case "getFat":
         getFat()
         break;
@@ -390,17 +390,23 @@ function showPanel() {
       case "cloneAndReplace":
         cloneAndReplace()
         break;
-        case "addTitleToInstance":
-          addTitleToInstance()
-          break;
+      case "addTitleToInstance":
+        addTitleToInstance()
+        break;
       case "superCloneAndReplace":
         superCloneAndReplace()
         break;
-        case "forceQueue":
-          forceQueue()
-          break;
+      case "forceQueue":
+        forceQueue()
+        break;
       case "moveDown":
         moveDown()
+        break;
+      case "frameTranspose":
+        frameTranspose()
+        break;
+      case "perfectCorner":
+        perfectCorner()
         break;
       default:
         break;
@@ -409,22 +415,139 @@ function showPanel() {
     //figma.closePlugin();
   }
 }
-function forceQueue() {
-  var selections = figma.currentPage.selection
-  var componentSelections = []
-  var mainFrame
+function perfectCorner() {
+
+}
+function frameTranspose() {
+  var selections = figma.currentPage.selection;
+  var frameSelections = new Array();
   for (const selection of selections) {
     if (selection.type == "FRAME") {
-      mainFrame = selection
-    } else {
-      componentSelections.push(selection)
+      frameSelections.push(selection)
     }
   }
-  var sumWidth = 0;
-  for (var i = 0; i < componentSelections.length; i++) {
-    componentSelections[i].x = mainFrame.x + mainFrame.width + 100 + sumWidth + i * 50
-    componentSelections[i].y = mainFrame.y
-    sumWidth = sumWidth + componentSelections[i].width
+  if (frameSelections.length <= 1) {
+    alert("请至少选择两个画板")
+  }
+  var isVertical = true
+  var orginX = frameSelections[0].x
+  for (const frameSelection of frameSelections) {
+    if (frameSelection.x != orginX) {
+      isVertical = false
+      break;
+    }
+  }
+  function sortByY(a, b) {
+    return a.y - b.y
+  }
+  function sortByXY(a,b){
+    if(a.y != b.y){
+      return a.y - b.y
+    }else{
+      return a.x - b.x
+    }
+  }
+  if (isVertical) {
+    frameSelections.sort(sortByY)
+    var nextPositionX = frameSelections[0].x + frameSelections[0].width + 100
+    var nextPositionY = frameSelections[0].y
+    var lastTitleFrame = frameSelections[0]
+    for(var j = 1;j<frameSelections.length;j++){
+      //判断是否为文档页面
+      var tempFrame = frameSelections[j].findChild(n => n.type == "INSTANCE" && n.mainComponent.name == "交互文档页面")
+      if(tempFrame != null){
+        frameSelections[j].x = nextPositionX
+        frameSelections[j].y = nextPositionY
+        nextPositionX = frameSelections[j].x + frameSelections[j].width + 100
+        nextPositionY = frameSelections[j].y
+      }else{
+        frameSelections[j].x = lastTitleFrame.x
+        frameSelections[j].y = lastTitleFrame.y + lastTitleFrame.height + 100
+        nextPositionX = frameSelections[j].x + frameSelections[j].width + 100
+        nextPositionY = frameSelections[j].y
+        lastTitleFrame = frameSelections[j]
+      }
+    }
+  }else{
+    //已经经过转置了
+    frameSelections.sort(sortByXY)
+    var nextPositionX = frameSelections[0].x
+    var nextPositionY = frameSelections[0].y + frameSelections[0].height + 100
+    for(var n = 1;n<frameSelections.length;n++){
+      frameSelections[n].x = nextPositionX
+      frameSelections[n].y = nextPositionY
+      nextPositionX = frameSelections[n].x
+      nextPositionY = frameSelections[n].y+frameSelections[n].height + 100
+    }
+  }
+}
+function forceQueue() {
+  var selections = figma.currentPage.selection
+  var currentFrames = new Array()
+  for (const selection of selections) {
+    currentFrames.push(selection)
+  }
+  function sortByY(a, b) {
+    return b.y - a.y
+  }
+  function sortByX(a, b) {
+    return a.x - b.x
+  }
+  currentFrames.sort(sortByY)
+
+  var totalMainComponents = new Array()
+  for (const currentFrame of currentFrames) {
+    if (currentFrame.type == "FRAME") {
+      var mainComponents = new Array()
+      var descriptionInstances = currentFrame.findChildren(n => n.type == "INSTANCE" && n.mainComponent.name == "页面描述")
+      var interfacePages = new Array()
+      for (const instance of descriptionInstances) {
+        var interfacePage = currentFrame.findChild(n => n.type == "INSTANCE" && n.x == instance.x && (n.y <= instance.y + instance.height + 10 && n.y >= instance.y + instance.height - 10) && n.mainComponent.name != "页面描述")
+        interfacePages.push(interfacePage)
+      }
+      interfacePages.sort(sortByX)
+      for (const interfacePage of interfacePages) {
+        if (interfacePage != null && interfacePage.type == "INSTANCE") {
+          mainComponents.push(interfacePage.mainComponent)
+        }
+      }
+      var mainComponentsAndFrame = mainComponents.concat([currentFrame])
+      figma.currentPage.selection = mainComponentsAndFrame
+      var componentSelections = []
+      var mainFrame
+      for (const temp of mainComponentsAndFrame) {
+        if (temp.type == "FRAME") {
+          mainFrame = temp
+        } else {
+          componentSelections.push(temp)
+        }
+      }
+      var sumWidth = 0;
+      for (var i = 0; i < componentSelections.length; i++) {
+        componentSelections[i].x = mainFrame.x + mainFrame.width + 100 + sumWidth + i * 50
+        componentSelections[i].y = mainFrame.y
+        sumWidth = sumWidth + componentSelections[i].width
+      }
+    }
+    totalMainComponents = totalMainComponents.concat(mainComponents)
+  }
+  figma.currentPage.selection = totalMainComponents
+  var trueTotalMainComponents = figma.currentPage.selection
+  //console.log(trueTotalMainComponents.length)
+  //处理画板空隙
+  var orginX = Number.MAX_VALUE
+  for (const component of trueTotalMainComponents) {
+    if (component.x < orginX) {
+      orginX = component.x
+    }
+  }
+  //console.log(orginX)
+  for (const component of trueTotalMainComponents) {
+    if (component.x > orginX) {
+
+    } else {
+      //console.log(component.name+"忽略")
+    }
   }
 }
 function getFat() {
@@ -447,13 +570,13 @@ function getFat() {
     }
   }
 }
-function tracingChild(){
+function tracingChild() {
   var selections = figma.currentPage.selection
   var newSelections = []
   for (const selection of selections) {
-    if (selection.type == "COMPONENT"){
-      var instances = figma.currentPage.findAll(n=>n.type=="INSTANCE" && n.mainComponent == selection)
-      for(const instance of instances){
+    if (selection.type == "COMPONENT") {
+      var instances = figma.currentPage.findAll(n => n.type == "INSTANCE" && n.mainComponent == selection)
+      for (const instance of instances) {
         newSelections.push(instance)
       }
     }
@@ -467,8 +590,8 @@ function tracingSource() {
   var selections = figma.currentPage.selection
   var newSelections = new Array()
   for (const selection of selections) {
-    if (selection.type == "INSTANCE"){
-      if(selection.mainComponent.parent == figma.currentPage){
+    if (selection.type == "INSTANCE") {
+      if (selection.mainComponent.parent == figma.currentPage) {
         newSelections.push(selection.mainComponent)
       }
     }
@@ -853,7 +976,7 @@ function renameEverything() {
         var bigestTextNode = textNodes[0]
         for (var i = 1; i < textNodes.length; i++) {
           // @ts-ignore
-          if (bigestTextNode.fontSize < textNodes[i].fontSize) {
+          if (bigestTextNode.fontSize < textNodes[i].fontSize && textNodes[i].characters.length > 2) {
             bigestTextNode = textNodes[i]
           }
         }
@@ -875,7 +998,7 @@ function renameEverything() {
             break;
           }
           // @ts-ignore
-          if (bigestTextNode.fontSize < textNodes[i].fontSize) {
+          if (bigestTextNode.fontSize < textNodes[i].fontSize && textNodes[i].characters.length > 2) {
             bigestTextNode = textNodes[i]
           }
         }
@@ -925,10 +1048,12 @@ function renameEverything() {
     return unitArray
   }
   function fills2String(fills) {
-
+    if (fills.length == 0) {
+      return ""
+    }
     var str = ""
     for (const fill of fills) {
-      console.log("fill.type:" + fill.type)
+      //console.log("fill.type:" + fill.type)
       if (fill.type == "SOLID") {
         //如果是纯色才允许添加
         str = color2Value(fill.color) + "|" + str
@@ -941,7 +1066,7 @@ function renameEverything() {
       str = str.slice(0, -1)
     }
     if (str == undefined) {
-      console.log("特殊矩形 " + fills)
+      //console.log("特殊矩形 " + fills)
     }
     return analyseColor(str)
   }
@@ -956,7 +1081,7 @@ function renameEverything() {
     return str
   }
   function color2Value(color) {
-    console.log(color)
+    //console.log(color)
     var value = ""
       + value2String(color.r * 255)
       + value2String(color.g * 255)
